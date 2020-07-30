@@ -422,6 +422,7 @@ relative to `org-directory', unless it is an absolute path."
 
   ;; Add support for youtube links + previews
   (require 'org-yt nil t)
+
   (defadvice! +org-dont-preview-if-disabled-a (&rest _)
     "Make `org-yt' respect `org-display-remote-inline-images'."
     :before-while #'org-yt-image-data-fun
@@ -520,7 +521,7 @@ eldoc string."
     (funcall orig-fn
              (cl-loop for part in path
                       ;; Remove full link syntax
-                      for fixedpart = (replace-regexp-in-string org-link-any-re "\\4" part)
+                      for fixedpart = (replace-regexp-in-string org-link-any-re "\\4" (or part ""))
                       for n from 0
                       for face = (nth (% n org-n-level-faces) org-level-faces)
                       collect
@@ -698,7 +699,8 @@ between the two."
          "e" #'org-clock-modify-effort-estimate
          "E" #'org-set-effort
          "g" #'org-clock-goto
-         "G" (λ! (org-clock-goto 'select))
+         "G" (cmd! (org-clock-goto 'select))
+         "l" #'+org/toggle-last-clock
          "i" #'org-clock-in
          "I" #'org-clock-in-last
          "o" #'org-clock-out
@@ -721,7 +723,7 @@ between the two."
           "g" #'helm-org-in-buffer-headings
           "G" #'helm-org-agenda-files-headings)
          "c" #'org-clock-goto
-         "C" (λ! (org-clock-goto 'select))
+         "C" (cmd! (org-clock-goto 'select))
          "i" #'org-id-goto
          "r" #'org-refile-goto-last-stored
          "v" #'+org/goto-visible
@@ -735,6 +737,12 @@ between the two."
          "s" #'org-store-link
          "S" #'org-insert-last-stored-link
          "t" #'org-toggle-link-display)
+        (:prefix ("P" . "publish")
+         "a" #'org-publish-all
+         "f" #'org-publish-current-file
+         "p" #'org-publish
+         "P" #'org-publish-current-project
+         "s" #'org-publish-sitemap)
         (:prefix ("r" . "refile")
          "." #'+org/refile-to-current-file
          "c" #'+org/refile-to-running-clock
@@ -762,7 +770,6 @@ between the two."
           "d" #'org-priority-down
           "p" #'org-priority
           "u" #'org-priority-up)))
-
 
   (map! :after org-agenda
         :map org-agenda-mode-map
@@ -960,8 +967,8 @@ compelling reason, so..."
         :ni "C-S-k" #'org-shiftup
         :ni "C-S-j" #'org-shiftdown
         ;; more intuitive RET keybinds
-        :i [return] (λ! (org-return t))
-        :i "RET"    (λ! (org-return t))
+        :i [return] (cmd! (org-return t))
+        :i "RET"    (cmd! (org-return t))
         :n [return] #'+org/dwim-at-point
         :n "RET"    #'+org/dwim-at-point
         ;; more vim-esque org motion keys (not covered by evil-org-mode)
@@ -1023,7 +1030,9 @@ compelling reason, so..."
   (defvar org-attach-id-dir nil)
 
   (setq org-publish-timestamp-directory (concat doom-cache-dir "org-timestamps/")
-        org-preview-latex-image-directory (concat doom-cache-dir "org-latex/"))
+        org-preview-latex-image-directory (concat doom-cache-dir "org-latex/")
+        ;; Recognize a), A), a., A., etc -- must be set before org is loaded.
+        org-list-allow-alphabetical t)
 
   ;; Make most of the default modules opt-in, because I sincerely doubt most
   ;; users use all of them.
@@ -1088,6 +1097,10 @@ compelling reason, so..."
 
   :config
   (setq org-archive-subtree-save-file-p t) ; save target buffer after archiving
+
+  ;; Prevent modifications made in invisible sections of an org document, as
+  ;; unintended changes can easily go unseen otherwise.
+  (setq org-catch-invisible-edits 'smart)
 
   ;; Global ID state means we can have ID links anywhere. This is required for
   ;; `org-brain', however.

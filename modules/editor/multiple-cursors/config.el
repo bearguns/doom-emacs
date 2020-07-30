@@ -132,6 +132,9 @@
 (after! multiple-cursors-core
   (setq mc/list-file (concat doom-etc-dir "mc-lists.el"))
 
+  ;; Can't use `mc/cmds-to-run-once' because mc-lists.el overwrites it
+  (add-to-list 'mc--default-cmds-to-run-once 'swiper-mc)
+
   ;; TODO multiple-cursors config for Emacs users?
 
   ;; mc doesn't play well with evil, this attempts to assuage some of its

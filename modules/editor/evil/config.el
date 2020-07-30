@@ -32,7 +32,6 @@ directives. By default, this only recognizes C directives.")
   :preface
   (setq evil-want-visual-char-semi-exclusive t
         evil-ex-search-vim-style-regexp t
-        evil-ex-substitute-global t
         evil-ex-visual-char-range t  ; column range for ex commands
         evil-mode-line-format 'nil
         ;; more vim-like behavior
@@ -325,7 +324,7 @@ directives. By default, this only recognizes C directives.")
         evil-snipe-repeat-scope 'visible
         evil-snipe-char-fold t)
   :config
-  (pushnew! evil-snipe-disabled-modes 'Info-mode 'calc-mode)
+  (pushnew! evil-snipe-disabled-modes 'Info-mode 'calc-mode 'treemacs-mode)
   (evil-snipe-mode +1)
   (evil-snipe-override-mode +1))
 
@@ -552,7 +551,7 @@ To change these keys see `+evil-repeat-keys'."
         "a" (evilem-create #'evil-forward-arg)
         "A" (evilem-create #'evil-backward-arg)
         "s" #'evil-avy-goto-char-2
-        "SPC" (cmd!! #'evil-avy-goto-char-timer t)
+        "SPC" (cmd! (let ((current-prefix-arg t)) (evil-avy-goto-char-timer)))
         "/" #'evil-avy-goto-char-timer))
 
       ;; evil-snipe

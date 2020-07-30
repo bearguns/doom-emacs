@@ -172,10 +172,12 @@ possible."
 ;;
 ;;; Extra file extensions to support
 
-(push '("/LICENSE\\'" . text-mode) auto-mode-alist)
-(push '("\\.log\\'" . text-mode) auto-mode-alist)
-(push '("rc\\'" . conf-mode) auto-mode-alist)
-(push '("\\.\\(?:hex\\|nes\\)\\'" . hexl-mode) auto-mode-alist)
+(nconc
+ auto-mode-alist
+ '(("/LICENSE\\'" . text-mode)
+   ("\\.log\\'" . text-mode)
+   ("rc\\'" . conf-mode)
+   ("\\.\\(?:hex\\|nes\\)\\'" . hexl-mode)))
 
 
 ;;
@@ -312,6 +314,7 @@ files, so we replace calls to `pp' with the much faster `prin1'."
 (use-package! better-jumper
   :hook (doom-first-input . better-jumper-mode)
   :hook (better-jumper-post-jump . recenter)
+  :commands doom-set-jump-a doom-set-jump-maybe-a doom-set-jump-h
   :preface
   ;; REVIEW Suppress byte-compiler warning spawning a *Compile-Log* buffer at
   ;; startup. This can be removed once gilbertw1/better-jumper#2 is merged.
@@ -542,7 +545,7 @@ files, so we replace calls to `pp' with the much faster `prin1'."
            (if visual-line-mode
                (* so-long-threshold
                   (if (derived-mode-p 'text-mode)
-                      3
+                      4
                     2))
              so-long-threshold)))
       (so-long-detected-long-line-p)))

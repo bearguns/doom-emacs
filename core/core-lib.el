@@ -251,13 +251,17 @@ or aliases."
   (declare (doc-string 1) (pure t) (side-effect-free t))
   `(lambda (&rest _) (interactive) ,@body))
 
-(defmacro cmd!! (command &rest args)
+(defmacro cmd!! (command &optional prefix-arg &rest args)
   "Expands to a closure that interactively calls COMMAND with ARGS.
 A factory for quickly producing interactive, prefixed commands for keybinds or
 aliases."
   (declare (doc-string 1) (pure t) (side-effect-free t))
-  `(lambda (&rest _) (interactive)
-     (funcall-interactively ,command ,@args)))
+  `(lambda (arg &rest _) (interactive "P")
+     (let ((current-prefix-arg (or ,prefix-arg arg)))
+       (,(if args
+             'funcall-interactively
+           'call-interactively)
+        ,command ,@args))))
 
 (defmacro cmds! (&rest branches)
   "Expands to a `menu-item' dispatcher for keybinds."
@@ -632,7 +636,7 @@ testing advice (when combined with `rotate-text').
 ;;
 ;;; Backports
 
-(when! (not EMACS27+)
+(when! (version< emacs-version "27.0.90")
   ;; DEPRECATED Backported from Emacs 27
   (defmacro setq-local (&rest pairs)
     "Make variables in PAIRS buffer-local and assign them the corresponding values.
